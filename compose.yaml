@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    container_name: opensource-todo
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_PATH: /app/instance/tasks.db
+      SECRET_KEY: change-this-before-deployment
+    volumes:
+      - task_data:/app/instance
+      - ./data:/app/data:ro
+    restart: unless-stopped
+volumes:
+  task_data:
