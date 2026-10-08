@@ -3626,3 +3626,269 @@ body.light-mode .theme-button:hover {
         display: block;
     }
 }
+
+/* =========================================================
+   TASKFLOW CORE COMPONENT FIX
+   ========================================================= */
+
+.panel {
+    background: #0d1117;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 21px;
+    margin-bottom: 24px;
+}
+
+.panel h2,
+.section-heading h2 {
+    margin: 0 0 13px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.task-form {
+    display: grid;
+    grid-template-columns: 1.3fr 1.2fr 120px 145px auto;
+    gap: 8px;
+}
+
+.task-form input,
+.task-form select,
+.filters input,
+.filters select {
+    font: 13px 'DM Sans', sans-serif;
+    color: #f4f7fb;
+    background: #111822;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 10px 11px;
+    min-width: 0;
+    width: 100%;
+}
+
+.task-form input::placeholder,
+.filters input::placeholder {
+    color: #687282;
+}
+
+.task-list {
+    display: grid;
+    gap: 10px;
+}
+
+.task-card {
+    background: #0d1117;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 15px 17px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.task-main {
+    display: flex;
+    gap: 11px;
+    min-width: 0;
+}
+
+.check {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #687282;
+    border-radius: 50%;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: white;
+}
+
+.check.checked {
+    background: #25c784;
+    border-color: #25c784;
+}
+
+.task-card h3 {
+    font-size: 13px;
+    margin: 0 0 5px;
+    color: #f4f7fb;
+}
+
+.task-card p {
+    font-size: 11px;
+    color: #9ba5b4;
+    margin: 0 0 8px;
+}
+
+.meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.pill {
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    background: #111822;
+    color: #9ba5b4;
+}
+
+.pill.high {
+    background: rgba(255,83,100,0.12);
+    color: #ff8a96;
+}
+
+.pill.medium {
+    background: rgba(255,193,77,0.12);
+    color: #ffd47a;
+}
+
+.pill.low {
+    background: rgba(37,199,132,0.12);
+    color: #69dda9;
+}
+
+.due,
+.small {
+    font-size: 10px;
+    color: #687282;
+}
+
+.is-complete h3 {
+    text-decoration: line-through;
+    color: #687282;
+}
+
+.actions {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+    flex: none;
+}
+
+.actions form {
+    margin: 0;
+}
+
+.text-button {
+    border: 0;
+    background: none;
+    color: #1683ff;
+    font: 700 11px 'DM Sans', sans-serif;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.text-button.danger {
+    color: #ff5364;
+}
+
+.filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.filters input {
+    width: 190px;
+}
+
+.filters select {
+    width: 140px;
+}
+
+.empty {
+    text-align: center;
+    padding: 35px 20px;
+    background: #0d1117;
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 12px;
+    color: #9ba5b4;
+}
+
+.empty h3 {
+    font-size: 15px;
+    color: #f4f7fb;
+}
+
+.insights {
+    margin: 2rem 0;
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.insight-card {
+    background: #0d1117;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.insight-card span {
+    display: block;
+    color: #9ba5b4;
+    font-size: 11px;
+}
+
+.insight-card strong {
+    display: block;
+    color: #f4f7fb;
+    font-size: 22px;
+    margin-top: 5px;
+}
+
+.insight-message {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: rgba(22,131,255,0.08);
+    border: 1px solid rgba(22,131,255,0.15);
+    border-radius: 10px;
+    color: #9ba5b4;
+}
+
+@media (max-width: 1000px) {
+    .insight-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .task-form {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .insight-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .task-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .actions {
+        align-self: flex-end;
+    }
+
+    .filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 520px) {
+    .task-form {
+        grid-template-columns: 1fr;
+    }
+
+    .insight-grid {
+        grid-template-columns: 1fr;
+    }
+}
