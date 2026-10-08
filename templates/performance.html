@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Performance{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">PERFORMANCE</p>
+        <h1>Your productivity overview.</h1>
+        <p class="muted">
+            Track task completion, priorities, and upcoming deadlines.
+        </p>
+    </div>
+</section>
+
+<section class="stats">
+    <div class="stat">
+        <span>Total tasks</span>
+        <strong>{{ total_tasks }}</strong>
+    </div>
+
+    <div class="stat">
+        <span>Completed</span>
+        <strong>{{ completed_tasks }}</strong>
+    </div>
+
+    <div class="stat">
+        <span>Completion rate</span>
+        <strong>{{ completion_rate }}%</strong>
+    </div>
+
+    <div class="stat">
+        <span>Overdue</span>
+        <strong>{{ overdue_tasks }}</strong>
+    </div>
+</section>
+
+<div class="performance-grid">
+
+    <section class="panel chart-panel">
+        <p class="eyebrow">STATUS</p>
+        <h2>Task status</h2>
+
+        <div class="bar-chart">
+            {% for item in status_chart %}
+            <div class="bar-row">
+                <div class="bar-label">
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.value }}</strong>
+                </div>
+
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ item.width }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel chart-panel">
+        <p class="eyebrow">PRIORITY</p>
+        <h2>Task priority</h2>
+
+        <div class="bar-chart">
+            {% for item in priority_chart %}
+            <div class="bar-row">
+                <div class="bar-label">
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.value }}</strong>
+                </div>
+
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ item.width }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+
+<section class="panel deadline-panel">
+    <p class="eyebrow">DEADLINES</p>
+    <h2>Deadline overview</h2>
+
+    <div class="deadline-grid">
+        <div class="deadline-card">
+            <span>Overdue tasks</span>
+            <strong>{{ overdue_tasks }}</strong>
+        </div>
+
+        <div class="deadline-card">
+            <span>Due within 7 days</span>
+            <strong>{{ due_soon_tasks }}</strong>
+        </div>
+
+        <div class="deadline-card">
+            <span>Completed tasks</span>
+            <strong>{{ completed_tasks }}</strong>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

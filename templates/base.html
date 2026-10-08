@@ -1,3 +1,40 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}TaskFlow{% endblock %} | Task Manager</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
-<body><header class="topbar"><a class="brand" href="{{ url_for('index') }}"><span class="mark">✓</span><span>TaskFlow<small>OPEN-SOURCE TASK MANAGER</small></span></a><nav><a href="{{ url_for('index') }}">My Tasks</a><a href="{{ url_for('dataset') }}">Dataset Explorer</a></nav></header>
-<main class="container">{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main><footer>OST Mini Project · Flask + SQLite + Docker</footer></body></html>
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <a class="brand" href="{{ url_for('index') }}">
+            <span class="mark">✓</span>
+            <span>TaskFlow<small>OPEN-SOURCE TASK MANAGER</small></span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <p class="sidebar-label">WORKSPACE</p>
+
+            <a href="{{ url_for('index') }}" class="sidebar-link">
+                <span>🏠</span>
+                <span>Home</span>
+            </a>
+
+            <a href="{{ url_for('performance') }}" class="sidebar-link">
+                <span>📊</span>
+                <span>Performance</span>
+            </a>
+
+            <a href="{{ url_for('dataset') }}" class="sidebar-link">
+                <span>📚</span>
+                <span>Dataset</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <small>OST Mini Project</small>
+            <small>Flask + SQLite + Docker</small>
+        </div>
+    </aside>
+
+    <div class="main-area">
+        <main class="container">{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main>
+        <footer>OST Mini Project · Flask + SQLite + Docker</footer>
+    </div>
+</div>
+</body></html>

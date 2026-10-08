@@ -34,17 +34,107 @@ def dataset_rows():
 @app.route("/")
 def index():
     status, q = request.args.get("status", ""), request.args.get("q", "").strip()
+
     sql, args = "SELECT * FROM tasks WHERE 1=1", []
+
     if status in STATUSES:
-        sql += " AND status=?"; args.append(status)
+        sql += " AND status=?"
+        args.append(status)
+
     if q:
-        sql += " AND (title LIKE ? OR description LIKE ?)"; args += [f"%{q}%", f"%{q}%"]
-    sql += " ORDER BY CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, due_date, id DESC"
+        sql += " AND (title LIKE ? OR description LIKE ?)"
+        args += [f"%{q}%", f"%{q}%"]
+
+    sql += """ ORDER BY
+        CASE priority
+            WHEN 'High' THEN 1
+            WHEN 'Medium' THEN 2
+            ELSE 3
+        END,
+        due_date, id DESC
+    """
+
     with db() as conn:
         tasks = conn.execute(sql, args).fetchall()
-        counts = {s: conn.execute("SELECT COUNT(*) FROM tasks WHERE status=?", (s,)).fetchone()[0] for s in STATUSES}
-    return render_template("index.html", tasks=tasks, counts=counts, statuses=STATUSES,
-        priorities=PRIORITIES, selected_status=status, search=q, dataset_available=DATASET.exists())
+
+        counts = {
+            s: conn.execute(
+                "SELECT COUNT(*) FROM tasks WHERE status=?", (s,)
+            ).fetchone()[0]
+            for s in STATUSES
+        }
+
+        total_tasks = conn.execute(
+            "SELECT COUNT(*) FROM tasks"
+        ).fetchone()[0]
+
+        completed_tasks = conn.execute(
+            "SELECT COUNT(*) FROM tasks WHERE status='Completed'"
+        ).fetchone()[0]
+
+        high_priority_tasks = conn.execute(
+            "SELECT COUNT(*) FROM tasks WHERE priority='High' AND status!='Completed'"
+        ).fetchone()[0]
+
+        overdue_tasks = conn.execute(
+            """SELECT COUNT(*) FROM tasks
+               WHERE due_date != ''
+               AND due_date < date('now')
+               AND status != 'Completed'"""
+        ).fetchone()[0]
+
+        due_soon_tasks = conn.execute(
+            """SELECT COUNT(*) FROM tasks
+               WHERE due_date != ''
+               AND due_date >= date('now')
+               AND due_date <= date('now', '+7 days')
+               AND status != 'Completed'"""
+        ).fetchone()[0]
+
+    completion_rate = round(
+        (completed_tasks / total_tasks) * 100
+    ) if total_tasks else 0
+
+    if overdue_tasks > 0:
+        insight = (
+            f"You have {overdue_tasks} overdue task"
+            f"{'s' if overdue_tasks != 1 else ''}. "
+            "Consider completing these first."
+        )
+    elif high_priority_tasks > 0:
+        insight = (
+            f"You have {high_priority_tasks} high-priority task"
+            f"{'s' if high_priority_tasks != 1 else ''}. "
+            "Focus on these before lower-priority tasks."
+        )
+    elif due_soon_tasks > 0:
+        insight = (
+            f"You have {due_soon_tasks} task"
+            f"{'s' if due_soon_tasks != 1 else ''} due within 7 days."
+        )
+    elif total_tasks > 0:
+        insight = "Your task list is under control. Keep up the progress!"
+    else:
+        insight = "Add your first task to start tracking your productivity."
+
+    return render_template(
+        "index.html",
+        tasks=tasks,
+        counts=counts,
+        statuses=STATUSES,
+        priorities=PRIORITIES,
+        selected_status=status,
+        search=q,
+        dataset_available=DATASET.exists(),
+        total_tasks=total_tasks,
+        completed_tasks=completed_tasks,
+        high_priority_tasks=high_priority_tasks,
+        overdue_tasks=overdue_tasks,
+        due_soon_tasks=due_soon_tasks,
+        completion_rate=completion_rate,
+        insight=insight
+    )
+
 
 @app.post("/tasks")
 def add_task():
@@ -86,6 +176,84 @@ def complete_task(task_id):
 def delete_task(task_id):
     with db() as conn: conn.execute("DELETE FROM tasks WHERE id=?", (task_id,))
     flash("Task deleted.", "success"); return redirect(url_for("index"))
+
+@app.route("/performance")
+def performance():
+    with db() as conn:
+        status_counts = {
+            s: conn.execute(
+                "SELECT COUNT(*) FROM tasks WHERE status=?", (s,)
+            ).fetchone()[0]
+            for s in STATUSES
+        }
+
+        priority_counts = {
+            p: conn.execute(
+                "SELECT COUNT(*) FROM tasks WHERE priority=?", (p,)
+            ).fetchone()[0]
+            for p in PRIORITIES
+        }
+
+        total_tasks = conn.execute(
+            "SELECT COUNT(*) FROM tasks"
+        ).fetchone()[0]
+
+        completed_tasks = conn.execute(
+            "SELECT COUNT(*) FROM tasks WHERE status='Completed'"
+        ).fetchone()[0]
+
+        overdue_tasks = conn.execute("""
+            SELECT COUNT(*) FROM tasks
+            WHERE due_date != ''
+            AND due_date < date('now')
+            AND status != 'Completed'
+        """).fetchone()[0]
+
+        due_soon_tasks = conn.execute("""
+            SELECT COUNT(*) FROM tasks
+            WHERE due_date != ''
+            AND due_date >= date('now')
+            AND due_date <= date('now', '+7 days')
+            AND status != 'Completed'
+        """).fetchone()[0]
+
+    completion_rate = (
+        round((completed_tasks / total_tasks) * 100)
+        if total_tasks else 0
+    )
+
+    max_status = max(status_counts.values(), default=1) or 1
+    max_priority = max(priority_counts.values(), default=1) or 1
+
+    status_chart = [
+        {
+            "label": s,
+            "value": status_counts[s],
+            "width": round((status_counts[s] / max_status) * 100)
+        }
+        for s in STATUSES
+    ]
+
+    priority_chart = [
+        {
+            "label": p,
+            "value": priority_counts[p],
+            "width": round((priority_counts[p] / max_priority) * 100)
+        }
+        for p in PRIORITIES
+    ]
+
+    return render_template(
+        "performance.html",
+        status_chart=status_chart,
+        priority_chart=priority_chart,
+        total_tasks=total_tasks,
+        completed_tasks=completed_tasks,
+        completion_rate=completion_rate,
+        overdue_tasks=overdue_tasks,
+        due_soon_tasks=due_soon_tasks,
+    )
+
 
 @app.route("/dataset")
 def dataset():

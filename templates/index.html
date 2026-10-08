@@ -1,6 +1,28 @@
 {% extends "base.html" %}{% block title %}My Tasks{% endblock %}{% block content %}
 <section class="hero"><div><p class="eyebrow">YOUR WORKSPACE</p><h1>Make room for what matters.</h1><p class="muted">Plan your day, manage deadlines, and move tasks forward.</p></div><a class="button secondary" href="{{ url_for('dataset') }}">Explore real task data →</a></section>
 <section class="stats">{% for label,value in [('Total tasks',counts['Pending']+counts['In Progress']+counts['Completed']),('Pending',counts['Pending']),('In progress',counts['In Progress']),('Completed',counts['Completed'])] %}<div class="stat"><span>{{ label }}</span><strong>{{ value }}</strong></div>{% endfor %}</section>
+<section class="insights">
+<div class="section-heading">
+<div>
+<p class="eyebrow">SMART INSIGHTS</p>
+<h2>Your productivity snapshot</h2>
+</div>
+</div>
+
+<div class="insight-grid">
+<div class="insight-card"><span>Total tasks</span><strong>{{ total_tasks }}</strong></div>
+<div class="insight-card"><span>Completion rate</span><strong>{{ completion_rate }}%</strong></div>
+<div class="insight-card"><span>High priority</span><strong>{{ high_priority_tasks }}</strong></div>
+<div class="insight-card"><span>Overdue</span><strong>{{ overdue_tasks }}</strong></div>
+<div class="insight-card"><span>Due within 7 days</span><strong>{{ due_soon_tasks }}</strong></div>
+</div>
+
+<div class="insight-message">
+<span>💡</span>
+<p>{{ insight }}</p>
+</div>
+</section>
+
 <section class="panel"><p class="eyebrow">QUICK CAPTURE</p><h2>Add a task</h2><form class="task-form" action="{{ url_for('add_task') }}" method="post"><input name="title" placeholder="What needs to get done?" required maxlength="200"><input name="description" placeholder="Description (optional)"><select name="priority"><option>Medium</option><option>High</option><option>Low</option></select><input type="date" name="due_date" aria-label="Due date"><button class="button">+ Add task</button></form></section>
 <div class="section-heading"><div><p class="eyebrow">TASK BOARD</p><h2>Your tasks</h2></div><form class="filters" method="get"><input name="q" value="{{ search }}" placeholder="Search tasks"><select name="status"><option value="">All statuses</option>{% for s in statuses %}<option value="{{ s }}" {% if selected_status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select><button class="button secondary">Filter</button></form></div>
 <div class="task-list">{% for task in tasks %}<article class="task-card {% if task.status=='Completed' %}is-complete{% endif %}"><div class="task-main"><span class="check {% if task.status=='Completed' %}checked{% endif %}">{% if task.status=='Completed' %}✓{% endif %}</span><div><h3>{{ task.title }}</h3>{% if task.description %}<p>{{ task.description }}</p>{% endif %}<div class="meta"><span class="pill {{ task.priority|lower }}">{{ task.priority }} priority</span><span class="pill">{{ task.status }}</span>{% if task.due_date %}<span class="due">Due {{ task.due_date }}</span>{% endif %}</div></div></div><div class="actions">{% if task.status!='Completed' %}<form method="post" action="{{ url_for('complete_task',task_id=task.id) }}"><button class="text-button">Complete</button></form>{% endif %}<a class="text-button" href="{{ url_for('edit_task',task_id=task.id) }}">Edit</a><form method="post" action="{{ url_for('delete_task',task_id=task.id) }}" onsubmit="return confirm('Delete this task?')"><button class="text-button danger">Delete</button></form></div></article>{% else %}<div class="empty"><h3>No tasks found</h3><p>Add a task above or change your filters.</p></div>{% endfor %}</div>{% endblock %}
