@@ -1,3 +1,464 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}TaskFlow{% endblock %} | Task Manager</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
-<body><header class="topbar"><a class="brand" href="{{ url_for('index') }}"><span class="mark">✓</span><span>TaskFlow<small>OPEN-SOURCE TASK MANAGER</small></span></a><nav><a href="{{ url_for('index') }}">My Tasks</a><a href="{{ url_for('dataset') }}">Dataset Explorer</a></nav></header>
-<main class="container">{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main><footer>OST Mini Project · Flask + SQLite + Docker</footer></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+        name="theme-color"
+        content="#07090d"
+    >
+
+    <title>
+        {% block title %}TaskFlow{% endblock %} | Task Manager
+    </title>
+
+
+    <!-- TaskFlow logo for browser tab -->
+    <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for('static', filename='logo.png') }}"
+    >
+
+
+    <!-- Main stylesheet -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    {% block head %}{% endblock %}
+
+</head>
+
+
+<body>
+
+
+<div class="app-shell">
+
+
+    <!-- ==========================================
+         SIDEBAR
+         ========================================== -->
+
+    <aside class="sidebar">
+
+
+        <!-- LOGO / BRAND -->
+
+        <a
+            class="brand"
+            href="{{ url_for('index') }}"
+        >
+
+            <span class="brand-logo">
+
+                <img
+                    src="{{ url_for('static', filename='logo.png') }}"
+                    alt="TaskFlow logo"
+                >
+
+            </span>
+
+            <span class="brand-text">
+
+                <strong>
+                    TaskFlow
+                </strong>
+
+                <small>
+                    OPEN-SOURCE TASK MANAGER
+                </small>
+
+            </span>
+
+        </a>
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="main-nav">
+
+
+            <!-- MY TASKS -->
+
+            <a
+                href="{{ url_for('index') }}"
+                class="{% if request.endpoint == 'index' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">
+                    ✓
+                </span>
+
+                <span>
+                    My Tasks
+                </span>
+
+            </a>
+
+
+            <!-- PERFORMANCE -->
+
+            <a
+                href="{{ url_for('performance') }}"
+                class="{% if request.endpoint == 'performance' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">
+                    ◒
+                </span>
+
+                <span>
+                    Performance
+                </span>
+
+            </a>
+
+
+            <!-- DATASET -->
+
+            <a
+                href="{{ url_for('dataset') }}"
+                class="{% if request.endpoint == 'dataset' or page_name == 'dataset' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">
+                    ▦
+                </span>
+
+                <span>
+                    Dataset Explorer
+                </span>
+
+            </a>
+
+
+        </nav>
+
+
+        <!-- SIDEBAR BOTTOM -->
+
+        <div class="sidebar-bottom">
+
+
+            {% if user_name %}
+
+            <div class="sidebar-user">
+
+                <span class="user-dot"></span>
+
+                <span>
+                    {{ user_name }}
+                </span>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- THEME TOGGLE -->
+
+            <button
+                type="button"
+                class="theme-button"
+                id="themeToggle"
+            >
+
+                <span class="theme-icon">
+                    ◐
+                </span>
+
+                <span class="theme-label">
+                    Dark mode
+                </span>
+
+            </button>
+
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- ==========================================
+         MAIN AREA
+         ========================================== -->
+
+    <div class="main-content">
+
+
+        <!-- PAGE HEADER -->
+
+        <header class="page-header">
+
+            {% block topbar %}{% endblock %}
+
+        </header>
+
+
+        <!-- PAGE CONTENT -->
+
+        <main class="content-area">
+
+
+            <!-- FLASH MESSAGES -->
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    <div class="flash-stack">
+
+                        {% for category, message in messages %}
+
+                            <div class="flash {{ category }}">
+
+                                <span class="flash-indicator"></span>
+
+                                <span>
+                                    {{ message }}
+                                </span>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <!-- ACTUAL PAGE CONTENT -->
+
+            {% block content %}{% endblock %}
+
+
+        </main>
+
+
+        <!-- FOOTER -->
+
+        <footer class="footer">
+
+            OST Mini Project · Flask + SQLite + Docker
+
+        </footer>
+
+
+    </div>
+
+
+</div>
+
+
+
+<!-- ==========================================
+     WELCOME NAME POPUP
+     ========================================== -->
+
+{% if not user_name %}
+
+<div class="welcome-overlay">
+
+
+    <div class="welcome-modal">
+
+
+        <!-- LOGO -->
+
+        <div class="welcome-logo">
+
+            <img
+                src="{{ url_for('static', filename='logo.png') }}"
+                alt="TaskFlow logo"
+            >
+
+        </div>
+
+
+        <!-- TEXT -->
+
+        <p class="modal-eyebrow">
+            WELCOME TO TASKFLOW
+        </p>
+
+
+        <h2>
+            What should we call you?
+        </h2>
+
+
+        <p class="modal-description">
+            Enter your name to personalize your TaskFlow workspace.
+        </p>
+
+
+        <!-- NAME FORM -->
+
+        <form
+            class="name-form"
+            action="{{ url_for('set_name') }}"
+            method="post"
+        >
+
+            <input
+                type="text"
+                name="name"
+                placeholder="Enter your name"
+                maxlength="80"
+                autocomplete="name"
+                required
+                autofocus
+            >
+
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                Continue
+            </button>
+
+        </form>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- ==========================================
+     DARK / LIGHT MODE
+     ========================================== -->
+
+<script>
+
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    const savedTheme =
+        localStorage.getItem("taskflow-theme");
+
+
+    /*
+     * Dark mode is the default.
+     * Light mode is enabled when saved.
+     */
+
+    if (savedTheme === "light") {
+
+        document.body.classList.add("light-mode");
+
+    }
+
+
+    function updateThemeButton() {
+
+        if (!themeToggle) {
+            return;
+        }
+
+
+        const icon =
+            themeToggle.querySelector(".theme-icon");
+
+        const label =
+            themeToggle.querySelector(".theme-label");
+
+
+        const isLight =
+            document.body.classList.contains("light-mode");
+
+
+        if (isLight) {
+
+            if (icon) {
+                icon.textContent = "☀";
+            }
+
+            if (label) {
+                label.textContent = "Dark mode";
+            }
+
+        } else {
+
+            if (icon) {
+                icon.textContent = "☾";
+            }
+
+            if (label) {
+                label.textContent = "Light mode";
+            }
+
+        }
+
+    }
+
+
+    updateThemeButton();
+
+
+    if (themeToggle) {
+
+        themeToggle.addEventListener(
+            "click",
+            function () {
+
+                document.body.classList.toggle("light-mode");
+
+
+                const isLight =
+                    document.body.classList.contains("light-mode");
+
+
+                localStorage.setItem(
+                    "taskflow-theme",
+                    isLight ? "light" : "dark"
+                );
+
+
+                updateThemeButton();
+
+
+                /*
+                 * Lets performance charts react
+                 * if they are present.
+                 */
+
+                window.dispatchEvent(
+                    new Event("themeChanged")
+                );
+
+            }
+        );
+
+    }
+
+</script>
+
+
+
+<!-- PAGE-SPECIFIC JAVASCRIPT -->
+
+{% block scripts %}{% endblock %}
+
+
+</body>
+
+</html>

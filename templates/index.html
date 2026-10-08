@@ -1,6 +1,400 @@
-{% extends "base.html" %}{% block title %}My Tasks{% endblock %}{% block content %}
-<section class="hero"><div><p class="eyebrow">YOUR WORKSPACE</p><h1>Make room for what matters.</h1><p class="muted">Plan your day, manage deadlines, and move tasks forward.</p></div><a class="button secondary" href="{{ url_for('dataset') }}">Explore real task data →</a></section>
-<section class="stats">{% for label,value in [('Total tasks',counts['Pending']+counts['In Progress']+counts['Completed']),('Pending',counts['Pending']),('In progress',counts['In Progress']),('Completed',counts['Completed'])] %}<div class="stat"><span>{{ label }}</span><strong>{{ value }}</strong></div>{% endfor %}</section>
-<section class="panel"><p class="eyebrow">QUICK CAPTURE</p><h2>Add a task</h2><form class="task-form" action="{{ url_for('add_task') }}" method="post"><input name="title" placeholder="What needs to get done?" required maxlength="200"><input name="description" placeholder="Description (optional)"><select name="priority"><option>Medium</option><option>High</option><option>Low</option></select><input type="date" name="due_date" aria-label="Due date"><button class="button">+ Add task</button></form></section>
-<div class="section-heading"><div><p class="eyebrow">TASK BOARD</p><h2>Your tasks</h2></div><form class="filters" method="get"><input name="q" value="{{ search }}" placeholder="Search tasks"><select name="status"><option value="">All statuses</option>{% for s in statuses %}<option value="{{ s }}" {% if selected_status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select><button class="button secondary">Filter</button></form></div>
-<div class="task-list">{% for task in tasks %}<article class="task-card {% if task.status=='Completed' %}is-complete{% endif %}"><div class="task-main"><span class="check {% if task.status=='Completed' %}checked{% endif %}">{% if task.status=='Completed' %}✓{% endif %}</span><div><h3>{{ task.title }}</h3>{% if task.description %}<p>{{ task.description }}</p>{% endif %}<div class="meta"><span class="pill {{ task.priority|lower }}">{{ task.priority }} priority</span><span class="pill">{{ task.status }}</span>{% if task.due_date %}<span class="due">Due {{ task.due_date }}</span>{% endif %}</div></div></div><div class="actions">{% if task.status!='Completed' %}<form method="post" action="{{ url_for('complete_task',task_id=task.id) }}"><button class="text-button">Complete</button></form>{% endif %}<a class="text-button" href="{{ url_for('edit_task',task_id=task.id) }}">Edit</a><form method="post" action="{{ url_for('delete_task',task_id=task.id) }}" onsubmit="return confirm('Delete this task?')"><button class="text-button danger">Delete</button></form></div></article>{% else %}<div class="empty"><h3>No tasks found</h3><p>Add a task above or change your filters.</p></div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}My Tasks{% endblock %}
+
+{% block page_heading %}
+My Tasks
+{% endblock %}
+
+
+{% block content %}
+
+<section class="home-intro">
+
+    <h2>
+        Make room for what matters{% if user_name %},
+        <span>{{ user_name }}</span>{% endif %}.
+    </h2>
+
+    <p>
+        Plan your work, stay focused, and keep your tasks moving.
+    </p>
+
+</section>
+
+
+<section class="stats-row">
+
+    <div class="stat">
+        <span class="stat-label">Total</span>
+        <span class="stat-value">{{ total }}</span>
+    </div>
+
+    <div class="stat">
+        <span class="stat-label">Pending</span>
+        <span class="stat-value">{{ counts["Pending"] }}</span>
+    </div>
+
+    <div class="stat">
+        <span class="stat-label">In Progress</span>
+        <span class="stat-value">{{ counts["In Progress"] }}</span>
+    </div>
+
+    <div class="stat">
+        <span class="stat-label">Completed</span>
+        <span class="stat-value blue">
+            {{ counts["Completed"] }}
+        </span>
+    </div>
+
+</section>
+
+
+<section class="capture">
+
+    <div class="section-heading">
+        <h3>Quick Capture</h3>
+        <span>Add a task</span>
+    </div>
+
+    <form
+        method="POST"
+        action="{{ url_for('add_task') }}"
+        class="capture-form"
+    >
+
+        <input
+            class="input"
+            type="text"
+            name="title"
+            placeholder="What needs to be done?"
+            required
+        >
+
+        <select
+            class="select"
+            name="priority"
+        >
+            {% for priority in priorities %}
+            <option value="{{ priority }}">
+                {{ priority }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <input
+            class="input"
+            type="date"
+            name="due_date"
+        >
+
+        <button
+            type="submit"
+            class="primary-button"
+        >
+            Add task
+        </button>
+
+    </form>
+
+</section>
+
+
+<section>
+
+    <div class="section-heading">
+
+        <h3>
+            Today's tasks
+        </h3>
+
+        <span>
+            {{ today_tasks|length }} task{% if today_tasks|length != 1 %}s{% endif %}
+        </span>
+
+    </div>
+
+
+    {% if today_tasks %}
+
+    <div class="task-list">
+
+        {% for task in today_tasks %}
+
+        <div class="task-row">
+
+            <div class="task-main">
+
+                <span class="task-title">
+                    {{ task["title"] }}
+                </span>
+
+                {% if task["description"] %}
+                <span class="task-description">
+                    {{ task["description"] }}
+                </span>
+                {% endif %}
+
+            </div>
+
+
+            <div>
+                <span class="priority {{ task['priority']|lower }}">
+                    {{ task["priority"] }}
+                </span>
+            </div>
+
+
+            <div
+                class="
+                    status-text
+                    {% if task['status'] == 'Completed' %}
+                        completed
+                    {% elif task['status'] == 'In Progress' %}
+                        progress
+                    {% else %}
+                        pending
+                    {% endif %}
+                "
+            >
+                {{ task["status"] }}
+            </div>
+
+
+            <div class="task-actions">
+
+                {% if task["status"] != "Completed" %}
+
+                <form
+                    method="POST"
+                    action="{{ url_for('complete_task', task_id=task['id']) }}"
+                >
+                    <button
+                        type="submit"
+                        class="task-action complete"
+                    >
+                        Complete
+                    </button>
+                </form>
+
+                {% endif %}
+
+                <a
+                    class="task-action"
+                    href="{{ url_for('edit_task', task_id=task['id']) }}"
+                >
+                    Edit
+                </a>
+
+                <form
+                    method="POST"
+                    action="{{ url_for('delete_task', task_id=task['id']) }}"
+                >
+                    <button
+                        type="submit"
+                        class="task-action delete"
+                        onclick="return confirm('Delete this task?');"
+                    >
+                        Delete
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h3>
+            No tasks for today.
+        </h3>
+
+        <p>
+            You're all clear. Add something above when you're ready.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</section>
+
+
+<section style="margin-top: 34px;">
+
+    <div class="section-heading">
+
+        <h3>
+            All tasks
+        </h3>
+
+        <span>
+            {{ total }} total
+        </span>
+
+    </div>
+
+
+    <div class="filters">
+
+        <form
+            method="GET"
+            action="{{ url_for('index') }}"
+            class="filter-search"
+        >
+
+            <input
+                class="input"
+                type="search"
+                name="q"
+                value="{{ search }}"
+                placeholder="Search tasks..."
+            >
+
+        </form>
+
+
+        <a
+            href="{{ url_for('index') }}"
+            class="
+                filter-link
+                {% if not selected_status %}active{% endif %}
+            "
+        >
+            All
+        </a>
+
+        {% for status in statuses %}
+
+        <a
+            href="{{ url_for('index', status=status, q=search) }}"
+            class="
+                filter-link
+                {% if selected_status == status %}active{% endif %}
+            "
+        >
+            {{ status }}
+        </a>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% if tasks %}
+
+    <div class="task-list">
+
+        {% for task in tasks %}
+
+        <div class="task-row">
+
+            <div class="task-main">
+
+                <span class="task-title">
+                    {{ task["title"] }}
+                </span>
+
+                {% if task["description"] %}
+                <span class="task-description">
+                    {{ task["description"] }}
+                </span>
+                {% endif %}
+
+            </div>
+
+
+            <div>
+                <span class="priority {{ task['priority']|lower }}">
+                    {{ task["priority"] }}
+                </span>
+            </div>
+
+
+            <div
+                class="
+                    status-text
+                    {% if task['status'] == 'Completed' %}
+                        completed
+                    {% elif task['status'] == 'In Progress' %}
+                        progress
+                    {% else %}
+                        pending
+                    {% endif %}
+                "
+            >
+                {{ task["status"] }}
+            </div>
+
+
+            <div class="task-actions">
+
+                {% if task["status"] != "Completed" %}
+
+                <form
+                    method="POST"
+                    action="{{ url_for('complete_task', task_id=task['id']) }}"
+                >
+                    <button
+                        type="submit"
+                        class="task-action complete"
+                    >
+                        Complete
+                    </button>
+                </form>
+
+                {% endif %}
+
+                <a
+                    class="task-action"
+                    href="{{ url_for('edit_task', task_id=task['id']) }}"
+                >
+                    Edit
+                </a>
+
+                <form
+                    method="POST"
+                    action="{{ url_for('delete_task', task_id=task['id']) }}"
+                >
+                    <button
+                        type="submit"
+                        class="task-action delete"
+                        onclick="return confirm('Delete this task?');"
+                    >
+                        Delete
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h3>
+            No tasks found.
+        </h3>
+
+        <p>
+            Try changing your search or filter.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

@@ -1,1 +1,171 @@
-{% extends "base.html" %}{% block title %}Edit Task{% endblock %}{% block content %}<div class="narrow panel"><p class="eyebrow">TASK DETAILS</p><h1>Edit task</h1><form class="edit-form" method="post"><label>Task title<input name="title" value="{{ task.title }}" required maxlength="200"></label><label>Description<textarea name="description" rows="4">{{ task.description }}</textarea></label><div class="two-col"><label>Priority<select name="priority">{% for p in priorities %}<option {% if task.priority==p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></label><label>Due date<input type="date" name="due_date" value="{{ task.due_date }}"></label></div><label>Status<select name="status">{% for s in statuses %}<option {% if task.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label><div class="form-actions"><a class="button secondary" href="{{ url_for('index') }}">Cancel</a><button class="button">Save changes</button></div></form></div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Edit Task{% endblock %}
+
+{% block page_heading %}
+Edit Task
+{% endblock %}
+
+
+{% block content %}
+
+<div class="edit-panel">
+
+    <form
+        method="POST"
+        action="{{ url_for('edit_task', task_id=task['id']) }}"
+    >
+
+        <div class="form-group">
+
+            <label
+                class="form-label"
+                for="title"
+            >
+                Task title
+            </label>
+
+            <input
+                class="input"
+                id="title"
+                type="text"
+                name="title"
+                value="{{ task['title'] }}"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label
+                class="form-label"
+                for="description"
+            >
+                Description
+            </label>
+
+            <textarea
+                class="textarea"
+                id="description"
+                name="description"
+                placeholder="Add some details..."
+            >{{ task['description'] }}</textarea>
+
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label
+                    class="form-label"
+                    for="priority"
+                >
+                    Priority
+                </label>
+
+                <select
+                    class="select"
+                    id="priority"
+                    name="priority"
+                >
+
+                    {% for priority in priorities %}
+
+                    <option
+                        value="{{ priority }}"
+                        {% if task['priority'] == priority %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ priority }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label
+                    class="form-label"
+                    for="status"
+                >
+                    Status
+                </label>
+
+                <select
+                    class="select"
+                    id="status"
+                    name="status"
+                >
+
+                    {% for status in statuses %}
+
+                    <option
+                        value="{{ status }}"
+                        {% if task['status'] == status %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ status }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label
+                class="form-label"
+                for="due_date"
+            >
+                Due date
+            </label>
+
+            <input
+                class="input"
+                id="due_date"
+                type="date"
+                name="due_date"
+                value="{{ task['due_date'] }}"
+            >
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                Save changes
+            </button>
+
+            <a
+                href="{{ url_for('index') }}"
+                class="secondary-button"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Performance{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Performance</h1>
+        <p>Track your task progress and productivity.</p>
+    </div>
+
+    <div class="chart-controls">
+        <button class="chart-btn active" onclick="changeChart('line', this)">
+            Line
+        </button>
+        <button class="chart-btn" onclick="changeChart('bar', this)">
+            Bar
+        </button>
+    </div>
+</div>
+
+
+<!-- SUMMARY CARDS -->
+<div class="performance-stats">
+
+    <div class="performance-card">
+        <span class="performance-label">Total Tasks</span>
+        <strong>{{ total }}</strong>
+    </div>
+
+    <div class="performance-card">
+        <span class="performance-label">Completed</span>
+        <strong>{{ counts["Completed"] }}</strong>
+    </div>
+
+    <div class="performance-card">
+        <span class="performance-label">Pending</span>
+        <strong>{{ counts["Pending"] }}</strong>
+    </div>
+
+    <div class="performance-card">
+        <span class="performance-label">In Progress</span>
+        <strong>{{ counts["In Progress"] }}</strong>
+    </div>
+
+</div>
+
+
+<!-- COMPLETION RATE -->
+<div class="performance-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Completion Rate</h2>
+            <p>Overall progress of your tasks.</p>
+        </div>
+
+        <strong class="completion-rate">
+            {{ completion_percentage }}%
+        </strong>
+    </div>
+
+    <div class="progress-track">
+        <div class="progress-fill" data-progress="{{ completion_percentage }}"></div>
+    </div>
+
+</div>
+
+
+<!-- TASK ACTIVITY GRAPH -->
+<div class="performance-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Task Activity</h2>
+            <p>Completed, pending and in-progress tasks over time.</p>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+    </div>
+
+</div>
+
+
+<!-- STATUS BREAKDOWN -->
+<div class="performance-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Task Status</h2>
+            <p>Current distribution of your tasks.</p>
+        </div>
+    </div>
+
+    <div class="status-grid">
+
+        <div class="status-item">
+            <span class="status-dot pending"></span>
+            <span>Pending</span>
+            <strong>{{ counts["Pending"] }}</strong>
+        </div>
+
+        <div class="status-item">
+            <span class="status-dot progress"></span>
+            <span>In Progress</span>
+            <strong>{{ counts["In Progress"] }}</strong>
+        </div>
+
+        <div class="status-item">
+            <span class="status-dot completed"></span>
+            <span>Completed</span>
+            <strong>{{ counts["Completed"] }}</strong>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!--
+    IMPORTANT:
+    The Jinja data is placed inside JSON script tags.
+    This prevents Jinja expressions from being mixed
+    directly into JavaScript.
+-->
+
+<script id="chart-data" type="application/json">
+    {{ chart_data | tojson }}
+</script>
+
+<script id="status-data" type="application/json">
+    {{ counts | tojson }}
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const chartData =
+    JSON.parse(
+        document.getElementById("chart-data").textContent
+    );
+
+let currentChart = null;
+
+
+/* CREATE CHART */
+
+function createChart(type) {
+
+    const canvas =
+        document.getElementById("performanceChart");
+
+    if (currentChart) {
+        currentChart.destroy();
+    }
+
+    currentChart = new Chart(canvas, {
+
+        type: type,
+
+        data: {
+            labels: chartData.labels,
+
+            datasets: [
+
+                {
+                    label: "Completed",
+                    data: chartData.completed,
+                    borderWidth: 2,
+                    tension: 0.3
+                },
+
+                {
+                    label: "Pending",
+                    data: chartData.pending,
+                    borderWidth: 2,
+                    tension: 0.3
+                },
+
+                {
+                    label: "In Progress",
+                    data: chartData.in_progress,
+                    borderWidth: 2,
+                    tension: 0.3
+                }
+
+            ]
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            interaction: {
+                intersect: false,
+                mode: "index"
+            },
+
+            plugins: {
+
+                legend: {
+                    display: true
+                }
+
+            },
+
+            scales: {
+
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+
+/* SWITCH BETWEEN LINE AND BAR */
+
+function changeChart(type, button) {
+
+    document
+        .querySelectorAll(".chart-btn")
+        .forEach(btn => {
+            btn.classList.remove("active");
+        });
+
+    button.classList.add("active");
+
+    createChart(type);
+}
+
+
+/* INITIAL CHART */
+
+createChart("line");
+
+</script>
+
+{% endblock %}
