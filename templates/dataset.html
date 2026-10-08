@@ -1,4 +1,241 @@
-{% extends "base.html" %}{% block title %}Dataset Explorer{% endblock %}{% block content %}
-<section class="hero"><div><p class="eyebrow">REAL-WORLD DATA</p><h1>MS-LaTTE Dataset Explorer</h1><p class="muted">Browse real to-do task examples and add one to your task board.</p></div><a class="button secondary" target="_blank" rel="noopener" href="https://github.com/microsoft/MS-LaTTE">Official dataset ↗</a></section>
-<div class="panel"><strong>About MS-LaTTE</strong><p class="muted note">The dataset contains real-world to-do tasks with human annotations for likely completion times and locations. These are contextual annotations, not due dates or task statuses.</p><p class="small">Dataset license: CDLA-Permissive-2.0. See the official repository for terms.</p></div>
-{% if not available %}<div class="empty"><h3>Dataset file not found</h3><p>From the project folder, run <code>python fetch_dataset.py</code> and refresh this page.</p></div>{% else %}<form class="filters dataset-search" method="get"><input name="q" value="{{ search }}" placeholder="Search task or list title"><button class="button">Search</button></form><p class="small">{{ total }} matching records · page {{ page }} of {{ pages }}</p><div class="dataset-list">{% for row in rows %}<article class="dataset-card"><div><h3>{{ row.get('TaskTitle','Untitled task') }}</h3><p class="muted">List: {{ row.get('ListTitle','Not specified') }}</p><p class="small">Record ID: {{ row.get('ID','N/A') }}</p></div><form method="post" action="{{ url_for('import_dataset_task',dataset_index=(page-1)*25+loop.index0) }}"><button class="button secondary">Add to tasks</button></form></article>{% endfor %}</div><div class="pagination">{% if page>1 %}<a href="{{ url_for('dataset',page=page-1,q=search) }}">← Previous</a>{% endif %}{% if page<pages %}<a href="{{ url_for('dataset',page=page+1,q=search) }}">Next →</a>{% endif %}</div>{% endif %}{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Dataset Explorer{% endblock %}
+
+{% block page_heading %}
+Dataset Explorer
+{% endblock %}
+
+
+{% block content %}
+
+<section class="dataset-intro">
+
+    <h2>
+        Dataset Explorer
+    </h2>
+
+    <p>
+        Browse tasks from the MS-LaTTE dataset and add useful ones
+        to your task list.
+    </p>
+
+</section>
+
+
+{% if not available %}
+
+<div class="dataset-empty">
+
+    <h3>
+        Dataset unavailable
+    </h3>
+
+    <p>
+        MS-LaTTE.json could not be found.
+    </p>
+
+</div>
+
+{% else %}
+
+
+<div class="dataset-toolbar">
+
+    <form
+        method="GET"
+        action="{{ url_for('dataset') }}"
+        class="dataset-search"
+    >
+
+        <input
+            class="input"
+            type="search"
+            name="q"
+            value="{{ search }}"
+            placeholder="Search dataset..."
+        >
+
+        <button
+            type="submit"
+            class="search-button"
+        >
+            Search
+        </button>
+
+    </form>
+
+
+    <span class="dataset-count">
+        {{ total }} entr{% if total == 1 %}y{% else %}ies{% endif %}
+    </span>
+
+</div>
+
+
+{% if rows %}
+
+<div class="dataset-table-wrap">
+
+    <div class="dataset-table-scroll">
+
+        <table class="dataset-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Task
+                    </th>
+
+                    <th>
+                        List
+                    </th>
+
+                    <th>
+                        Action
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for row in rows %}
+
+                <tr>
+
+                    <td class="dataset-title">
+
+                        {{ row.get("TaskTitle", "Untitled") }}
+
+                    </td>
+
+
+                    <td>
+
+                        {{ row.get("ListTitle", "Not specified") }}
+
+                    </td>
+
+
+                    <td>
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'import_dataset_task',
+                                dataset_index=((page - 1) * 25) + loop.index0
+                            ) }}"
+                        >
+
+                            <button
+                                type="submit"
+                                class="import-button"
+                            >
+                                Add task
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<div class="pagination">
+
+    <span class="pagination-info">
+
+        Page {{ page }} of {{ pages }}
+
+    </span>
+
+
+    <div class="pagination-buttons">
+
+        {% if page > 1 %}
+
+        <a
+            class="page-button"
+            href="{{ url_for(
+                'dataset',
+                page=page-1,
+                q=search
+            ) }}"
+        >
+            ← Previous
+        </a>
+
+        {% else %}
+
+        <span class="page-button disabled">
+            ← Previous
+        </span>
+
+        {% endif %}
+
+
+        <span class="page-current">
+            {{ page }}
+        </span>
+
+
+        {% if page < pages %}
+
+        <a
+            class="page-button"
+            href="{{ url_for(
+                'dataset',
+                page=page+1,
+                q=search
+            ) }}"
+        >
+            Next →
+        </a>
+
+        {% else %}
+
+        <span class="page-button disabled">
+            Next →
+        </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+{% else %}
+
+<div class="dataset-empty">
+
+    <h3>
+        No matching entries
+    </h3>
+
+    <p>
+        Try a different search.
+    </p>
+
+</div>
+
+{% endif %}
+
+{% endif %}
+
+{% endblock %}
